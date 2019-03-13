@@ -19,6 +19,7 @@ dependencies {
     compile "org.hibernate:hibernate-core:5.4.1.Final"
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     compile group: 'org.apache.httpcomponents', name: 'fluent-hc', version: '4.5.7'
+    compile files('deps/telegrambots-chat-session-bot-4.1.2.jar')
 }
 
 compileKotlin {
