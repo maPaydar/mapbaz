@@ -1,5 +1,7 @@
 package ai.bale.mapbaz;
 
+import ai.bale.mapbaz.db.UserRepository;
+import ai.bale.mapbaz.records.User;
 import org.apache.shiro.session.Session;
 import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -21,6 +23,8 @@ public class MapBazBot extends TelegramLongPollingSessionBot {
     List<String> routMenu = Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD);
 
     Long seqNumber = 31L;
+
+    private UserRepository userRepository = new UserRepository();
 
     public MapBazBot(DefaultBotOptions options) {
         super(options);
@@ -48,6 +52,11 @@ public class MapBazBot extends TelegramLongPollingSessionBot {
             if (message.hasText()) {
                 String textMessage = message.getText();
                 if (textMessage.equals(Constants.START)) {
+                    try {
+                        userRepository.create(new User(Math.toIntExact(message.getChatId()), 0, update.getMessage().getFrom().getFirstName()));
+                    } catch (Exception ezx) {
+                        System.err.println(ezx);
+                    }
                     System.out.println("/start" + update);
                     sendMessageWithMarkUp(chatId, Constants.TEXT_START, mainMenu);
                     session.get().setAttribute(session.get().getId(), Constants.START);
