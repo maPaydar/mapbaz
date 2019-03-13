@@ -1,87 +1,160 @@
 package ai.bale.mapbaz;
 
-import ai.bale.mapbaz.db.UserRepository;
-import ai.bale.mapbaz.records.User;
-import org.apache.shiro.session.Session;
-import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
+import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.session.TelegramLongPollingSessionBot;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
-public class MapBazBot extends TelegramLongPollingSessionBot {
+public class MapBazBot extends TelegramLongPollingBot {
 
-    List<String> mainMenu = Arrays.asList(Constants.BUTTON_MAIN_ADD_ROUTE, Constants.BUTTON_MAIN_ADD_SCHAULE_TIME,
+    List<String> mainMenu = Arrays.asList(Constants.BUTTON_MAIN_ADD_ROUTE,Constants.BUTTON_MAIN_ADD_SCHAULE_TIME,
             Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC);
-    List<String> routMenu = Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD);
 
-    Long seqNumber = 31L;
+    HashMap<Long, String> conversations = new HashMap();
 
-    private UserRepository userRepository = new UserRepository();
 
     public MapBazBot(DefaultBotOptions options) {
         super(options);
     }
 
-/*
     public void onUpdateReceived(Update update) {
         //parseMessage(update);
     }
-*/
 
-    @Override
-    public void onUpdateReceived(Update update, Optional<Session> session) {
-        parseMessage(update, session);
-        System.out.println("onUpdateRecived");
-    }
+    private void parseMessage(Update update) {
+        System.out.println("> pares update" + update);
 
-    private void parseMessage(Update update, Optional<Session> session) {
-
-        if (update.hasMessage()) {
-
+        if(update.hasMessage()) {
             Message message = update.getMessage();
             Long chatId = message.getChatId();
+            String convState = conversations.get(chatId);
 
-            if (message.hasText()) {
-                String textMessage = message.getText();
-                if (textMessage.equals(Constants.START)) {
-                    try {
-                        userRepository.create(new User(Math.toIntExact(message.getChatId()), 0, update.getMessage().getFrom().getFirstName()));
-                    } catch (Exception ezx) {
-                        System.err.println(ezx);
+            if(convState == null) {
+                // show main start
+                showMainMenu(chatId);
+            } else if(convState.equals(Constants.ConversationState.START.toString())) {
+                // check command that enetred
+                if(message.hasText()) {
+                    if(message.getText().equals(Constants.BUTTON_MAIN_ADD_ROUTE)) {
+                        showAddEditRout(chatId);
+                    } else if(message.getText().equals(Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC)) {
+                        showLiveTraffic(chatId);
+                    } else if(message.getText().equals(Constants.BUTTON_MAIN_ADD_SCHAULE_TIME)) {
+                        showSchedule(chatId);
+                    } else {
+                        showMainMenu(chatId);
                     }
-                    System.out.println("/start" + update);
-                    sendMessageWithMarkUp(chatId, Constants.TEXT_START, mainMenu);
-                    session.get().setAttribute(session.get().getId(), Constants.START);
-                } else if (textMessage.equals(Constants.BUTTON_MAIN_ADD_ROUTE)) {
-                    session.get().setAttribute(session.get().getId(), Constants.BUTTON_MAIN_ADD_ROUTE);
-                    sendMessageWithMarkUp(chatId, Constants.TEXT_HAS_ROUTE, loadUserMenu());
-                } else if (textMessage.equals(Constants.BUTTON_MAIN_ADD_SCHAULE_TIME)) {
-                    session.get().setAttribute(session.get().getId(), Constants.BUTTON_MAIN_ADD_SCHAULE_TIME);
-                    sendMessageWithMarkUp(chatId, Constants.TEXT_ADD_SCHAULE_TIME, loadUserMenu());
-                } else if (textMessage.equals(Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC)) {
-                    session.get().setAttribute(session.get().getId(), Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC);
-                    sendMessageWithMarkUp(chatId, Constants.TEXT_LIVE_TRAFFIC, loadUserMenu());
                 }
+            } else if(convState.equals(Constants.ConversationState.ADDEDIT_ROUTE_STEP1.toString())) {
+                if(message.hasText()) {
+                    if(message.getText().equals(Constants.BUTTON_ADD_ROUT_ADD)) {
+                        showSetOrigin(chatId);
+                    } else {
+                        showMainMenu(chatId);
+                    }
+                }
+            } else if(convState.equals(Constants.ConversationState.ADD_ROUTE_STEP_SET_ORIGIN.toString())) {
+                if(message.hasLocation()) {
+                    System.out.println("> origin: " + message.getLocation().toString());
+                    showSetTime(chatId);
+                }
+            } else if(convState.equals(Constants.ConversationState.ADD_ROUTE_STEP_SET_TIME.toString())) {
+                if(message.hasText()) {
+                    System.out.println("> time: " +  message.getText());
+                    showSetDest(chatId);
+                }
+            } else if(convState.equals(Constants.ConversationState.ADD_ROUTE_STEP_SET_DEST.toString())) {
+                if(message.hasLocation()) {
+                    System.out.println("> dest: " + message.getLocation().toString());
+                    showSetName(chatId);
+                }
+            } else if(convState.equals(Constants.ConversationState.ADD_ROUTE_STEP_SET_NAME.toString())) {
+                if(message.hasText()) {
+                    System.out.println("> name: " + message.getText());
+                    showSampleMessage(chatId);
+                }
+            } else if(convState.equals(Constants.ConversationState.ADD_ROUTE_STEP_FINAL.toString())) {
+                if(message.hasText()) {
+                    if(message.getText().equals(Constants.BUTTON_ADD_ROUT_ADD)) {
+                        showSetOrigin(chatId);
+                    } else {
+                        showMainMenu(chatId);
+                    }
+                }
+            } else if(convState.equals(Constants.ConversationState.SHOW_LIVE_TERRAFIC.toString())) {
+                if(message.hasText()) {
+                    // check route and request to neshan then show message
+                    System.out.println("> route: " + message.getText());
+                    showRouteMessage(chatId, 600L, "خونه");
+                }
+            }
+            else {
+                showMainMenu(chatId);
             }
 
         }
-        if (update.getMessage().hasLocation()) {
-
-        }
     }
 
-    private List<String> loadUserMenu() {
-        List<String> userMenu =  Arrays.asList();
-        //userMenu.addAll(routMenu);
-        return userMenu;
+    private void showRouteMessage(Long chatId, Long duration, String dest) {
+        // Todo show google map and waze or neshan links
+        // todo pares duration to human
+        sendMessageWithMarkUp(chatId, Constants.TEXT_FOUND_ROUTE.replace("{1}", duration.toString()).replace("{2}", dest), Arrays.asList(Constants.BUTTON_RETURN_TO_MAIN_MENU));
+        conversations.put(chatId, Constants.ConversationState.SHOWED_ALL_ROUTES.toString());
+    }
+
+    private void showSampleMessage(Long chatId) {
+        sendMessageWithMarkUp(chatId, Constants.TEXT_ADD_ROUT_STEP5, Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD, Constants.BUTTON_RETURN_TO_MAIN_MENU));
+        conversations.put(chatId, Constants.ConversationState.ADD_ROUTE_STEP_FINAL.toString());
+    }
+
+    private void showSetName(Long chatId) {
+        sendMessage(chatId, Constants.TEXT_ADD_ROUT_STEP4);
+        conversations.put(chatId, Constants.ConversationState.ADD_ROUTE_STEP_SET_NAME.toString());
+    }
+
+    private void showSetDest(Long chatId) {
+        sendMessage(chatId, Constants.TEXT_ADD_ROUT_STEP3);
+        conversations.put(chatId, Constants.ConversationState.ADD_ROUTE_STEP_SET_DEST.toString());
+    }
+
+    private void showSetTime(Long chatId) {
+        sendMessage(chatId, Constants.TEXT_ADD_ROUT_STEP2);
+        conversations.put(chatId, Constants.ConversationState.ADD_ROUTE_STEP_SET_TIME.toString());
+    }
+
+    private void showSetOrigin(Long chatId) {
+        sendMessage(chatId, Constants.TEXT_ADD_ROUT_STEP1);
+        conversations.put(chatId, Constants.ConversationState.ADD_ROUTE_STEP_SET_ORIGIN.toString());
+    }
+
+    private void showSchedule(Long chatId) {
+
+    }
+
+    private void showLiveTraffic(Long chatId) {
+        List<String> fakeRoutesList = Arrays.asList("از خونه به شرکت", "از دانشگاه به باشگاه", "از باشگاه به خونه");
+        sendMessageWithMarkUp(chatId, Constants.TEXT_LIVE_TRAFFIC, fakeRoutesList);
+        conversations.put(chatId, Constants.ConversationState.SHOW_LIVE_TERRAFIC.toString());
+    }
+
+    private void showAddEditRout(Long chatId) {
+        // Todo check if has routes show routes
+        sendMessageWithMarkUp(chatId,Constants.TEXT_HASNOT_ROUTE_, Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD));
+        conversations.put(chatId, Constants.ConversationState.ADDEDIT_ROUTE_STEP1.toString());
+    }
+
+    private void showMainMenu(Long chatId) {
+        sendMessageWithMarkUp(chatId, Constants.TEXT_START, mainMenu);
+        conversations.put(chatId, Constants.ConversationState.START.toString());
     }
 
 
@@ -98,17 +171,15 @@ public class MapBazBot extends TelegramLongPollingSessionBot {
         return replyKeyboardMarkup;
     }
 
-    void sendMessageWithMarkUp(long chat_id, String text, List<String> buttonList) {
+    void sendMessageWithMarkUp(long chat_id, String text ,List<String> buttonList) {
         SendMessage message = new SendMessage();
         message.setChatId(chat_id);
         message.setText(text);
-
         message.setReplyMarkup(getReplyKeyboardMarkUp(buttonList));
 
-        try {
+        try{
             execute(message);
-            System.out.println("Me: " + text);
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException e){
             e.printStackTrace();
         }
     }
@@ -118,18 +189,17 @@ public class MapBazBot extends TelegramLongPollingSessionBot {
         message.setChatId(chat_id);
         message.setText(text);
 
-        try {
+        try{
             execute(message);
-            System.out.println("Me: " + text);
-        } catch (TelegramApiException e) {
+        } catch (TelegramApiException e){
             e.printStackTrace();
         }
     }
 
-    /*public void onUpdatesReceived(List<Update> updates) {
-        System.out.println(updates);
+    public void onUpdatesReceived(List<Update> updates) {
+        // todo check last seq
+        parseMessage(updates.get(updates.size() - 1));
     }
-    */
 
     public String getBotUsername() {
         return "mapbazbot";

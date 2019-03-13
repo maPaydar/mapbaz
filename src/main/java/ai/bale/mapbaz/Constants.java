@@ -45,11 +45,30 @@ public class Constants {
 
     public static final String TEXT_LIVE_TRAFFIC = "برای مشاهده\u200Cی ترافیک الان هر کدوم از مسیرهات کافیه اون رو از لیست زیر انتخاب کنید. تا من کوتاه ترین مسیرها را برات پیدا کنم.\n";
 
+    public static final String TEXT_FOUND_ROUTE = "احتمالا توی {1} به {2} برسی.";
+
     // BUTTONS
     public static final String BUTTON_MAIN_ADD_ROUTE = "اضافه و ویرایش مسیرها";
     public static final String BUTTON_MAIN_ADD_SCHAULE_TIME = "هشدار هوشمند ترافیک مسیرها";
     public static final String BUTTON_MAIN_SHOW_LIVE_TERRAFIC = "مشاهده ترافیک لحظه ای مسیرها";
     public static final String BUTTON_RETURN_TO_MAIN_MENU = "بازگشت به منوی اصلی";
     public static final String BUTTON_ADD_ROUT_ADD = "اضافه کردن مسیر جدید";
+
+
+    //steps
+
+    public enum ConversationState {
+        START,
+        ADDEDIT_ROUTE_STEP1,
+        ADD_ROUTE,
+        ADD_ROUTE_STEP_SET_ORIGIN,
+        ADD_ROUTE_STEP_SET_TIME,
+        ADD_ROUTE_STEP_SET_DEST,
+        ADD_ROUTE_STEP_SET_NAME,
+        ADD_ROUTE_STEP_FINAL,
+        SHOW_LIVE_TERRAFIC,
+        SHOWED_ALL_ROUTES,
+        OTHER
+    }
 
 }
