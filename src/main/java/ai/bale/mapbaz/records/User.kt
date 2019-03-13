@@ -1,28 +1,28 @@
 package ai.bale.mapbaz.records
 
 import javax.persistence.*
-import java.sql.Timestamp
 
 @Entity
 @Table(name = "users")
-class User {
+class User : java.io.Serializable {
 
     @Id
-    var id: Int? = 0
+    var user_id: Int? = 0
     var paymentDate: Long = 0
     var name: String = ""
-
-    @OneToMany(cascade = [CascadeType.ALL])
-    @JoinColumn(name = "route_id")
-    var routes: Set<Route>? = setOf<Route>()
+//    @OneToMany(mappedBy = "user")
+//    var routes: Set<Route> = setOf()
 
     constructor() {
     }
 
-    constructor(id: Int?, paymentDate: Long, name: String, routes: Set<Route>?) {
-        this.id = id
+    constructor(id: Int) {
+        this.user_id = id
+    }
+
+    constructor(id: Int?, paymentDate: Long, name: String) {
+        this.user_id = id
         this.paymentDate = paymentDate
         this.name = name
-        this.routes = routes
     }
 }
