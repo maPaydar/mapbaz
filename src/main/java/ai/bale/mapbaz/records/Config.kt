@@ -20,6 +20,12 @@ class Config {
     constructor() {
     }
 
+    constructor(key: String, value: String, type: String) {
+        this.key = key
+        this.value = value
+        this.type = type
+    }
+
     constructor(id: Int, key: String, value: String, type: String) {
         this.id = id
         this.key = key

@@ -2,7 +2,7 @@ package ai.bale.mapbaz.db
 
 import ai.bale.mapbaz.records.User
 
-class UserRepository : Repository<Int, User> {
+class UserRepository : Repository<Long, User> {
 
     val session = HibernateUtil.sessionFactory.openSession()
 
@@ -12,7 +12,7 @@ class UserRepository : Repository<Int, User> {
         tr.commit()
     }
 
-    override fun read(id: Int): User? {
+    override fun read(id: Long): User? {
         var tr = session.beginTransaction()
         val user = session.load(User::class.java, id)
         tr.commit()

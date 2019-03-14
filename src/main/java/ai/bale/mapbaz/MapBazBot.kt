@@ -17,10 +17,13 @@ import ai.bale.mapbaz.db.ConfigRepository
 import ai.bale.mapbaz.db.RouteRepository
 import ai.bale.mapbaz.db.UserRepository
 import ai.bale.mapbaz.neshan.NeshanHandler
+import ai.bale.mapbaz.records.Config
 import ai.bale.mapbaz.records.Route
 import ai.bale.mapbaz.records.User
 import java.lang.Exception
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
@@ -182,7 +185,13 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
             } else if (convState == Constants.ConversationState.SHOW_MONEY_REQUEST) {
                 if (message.hasSuccessfulPayment()) {
                     System.out.println("> success " + message.getSuccessfulPayment().getOrderInfo());
-                    //TODO add one month to user date
+
+                    var user = userRepository.read(chatId)
+                    val now = LocalDateTime.now()
+                    val paymentTime =  LocalDateTime.of(now.year, now.month + 1, now.dayOfMonth, now.hour, now.minute)
+                    user!!.paymentDate = paymentTime.toEpochSecond(ZoneOffset.UTC)
+                    userRepository.update(user)
+
                     showSuccessfullPaymentResponse(chatId);
                 } else {
                     showFailedResponse(chatId);
@@ -323,7 +332,7 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
         sendInvoice.title = text
 
         val labeledPrice = LabeledPrice()
-        labeledPrice.amount = 1
+        labeledPrice.amount = 1000
         labeledPrice.label = "خرید اکانت طلایی"
 
         val labeledPriceList = ArrayList<LabeledPrice>()

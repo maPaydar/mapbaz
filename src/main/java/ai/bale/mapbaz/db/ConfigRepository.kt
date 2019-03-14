@@ -1,33 +1,53 @@
 package ai.bale.mapbaz.db
 
 import ai.bale.mapbaz.records.Config
+import ai.bale.mapbaz.records.Route
+import java.lang.Exception
 
 class ConfigRepository : Repository<Int, Config> {
 
-    val session = HibernateUtil.sessionFactory.currentSession
+    val session = HibernateUtil.sessionFactory.openSession()
 
     override fun create(config: Config) {
-        session.transaction.begin()
+        val tr = session.beginTransaction()
         session.persist(config)
-        session.transaction.commit()
+        tr.commit()
     }
 
     override fun read(id: Int): Config? {
-        session.transaction.begin()
+        val tr = session.beginTransaction()
         val config = session.load(Config::class.java, id)
-        session.transaction.commit()
+        tr.commit()
         return config
     }
 
     override fun update(config: Config) {
-        session.transaction.begin()
+        val tr = session.beginTransaction()
         session.update(config)
-        session.transaction.commit()
+        tr.commit()
     }
 
     override fun delete(config: Config) {
-        session.transaction.begin()
+        val tr = session.beginTransaction()
         session.delete(config)
-        session.transaction.commit()
+        tr.commit()
+    }
+
+    fun getConfigByKey(key: String) : Config? {
+        val tr = session.beginTransaction()
+        try {
+            val query = session.createSQLQuery("select * from configs where configs.key = ?")
+                    .addEntity(Config::class.java)
+                    .setString(1, key)
+            tr.commit()
+            val list = query.list();
+            if (list.isEmpty())
+                return null
+            return query.list()[0] as Config?
+        } catch (e: Exception) {
+            println(e)
+            tr.commit()
+        }
+        return null
     }
 }
