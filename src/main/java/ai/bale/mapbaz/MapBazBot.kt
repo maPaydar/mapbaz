@@ -1,5 +1,6 @@
 package ai.bale.mapbaz
 
+import ai.bale.mapbaz.Constants.*
 import org.telegram.telegrambots.bots.DefaultBotOptions
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.api.methods.send.SendInvoice
@@ -12,8 +13,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException
 
 import java.util.*
 
-import ai.bale.mapbaz.Constants.BUTTIN_BUY_GOLDEN_PANEL
-import ai.bale.mapbaz.Constants.BUTTON_MAIN_GOLD_PANEL
 import ai.bale.mapbaz.db.ConfigRepository
 import ai.bale.mapbaz.db.RouteRepository
 import ai.bale.mapbaz.db.UserRepository
@@ -25,14 +24,19 @@ import java.text.SimpleDateFormat
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.util.Arrays
+
+
 
 
 class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
 
-    private var mainMenu = Arrays.asList(Constants.BUTTON_MAIN_ADD_ROUTE, Constants.BUTTON_MAIN_ADD_SCHAULE_TIME,
+    private var mainMenu = Arrays.asList(Constants.BUTTON_MAIN_ADD_ROUTE,
             Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC, BUTTON_MAIN_GOLD_PANEL)
+    var returnMenu = Arrays.asList(Constants.BUTTON_RETURN_TO_MAIN_MENU);
+    var cancelMenu = Arrays.asList(Constants.BUTTON_CANCEL);
+
+
     private var conversations: HashMap<Long, Constants.ConversationState> = HashMap()
     private val neshanHandler = NeshanHandler()
     private val userRepository = UserRepository()
@@ -75,14 +79,24 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                     userRepository.create(user)
                 } catch (e: Exception) {
                 }
-                showMainMenu(chatId)
+                sendMessageWithMarkUp(chatId!!, Constants.TEXT_START, mainMenu)
+                conversations[chatId] = Constants.ConversationState.START
+            }
+
+            if(message.hasText() && message.text == Constants.START) {
+                 showMainMenu(chatId)
             } else if (convState == Constants.ConversationState.START) {
                 // check command that enetred
                 if (message.hasText()) {
                     if (message.text == Constants.BUTTON_MAIN_ADD_ROUTE) {
                         showAddEditRout(chatId)
                     } else if (message.text == Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC) {
-                        showLiveTraffic(chatId)
+                        if(routeRepository.getRoutesByUser(chatId).isEmpty()) {
+                            sendMessageWithMarkUp(chatId, Constants.TEXT_SHOW_LIVE_TERAFFIC_WITH_NONE_ROUTE, Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD))
+                            conversations[chatId] = Constants.ConversationState.ADDEDIT_ROUTE_STEP1
+                        } else {
+                            showLiveTraffic(chatId)
+                        }
                     } else if (message.text == Constants.BUTTON_MAIN_ADD_SCHAULE_TIME) {
                         showSchedule(chatId)
                     } else if (message.text == Constants.BUTTON_MAIN_GOLD_PANEL) {
@@ -109,6 +123,8 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                     currentUsersRoute[message.chatId] = route
 
                     showSetTime(chatId)
+                } else {
+                    sendMessage(chatId, TEXT_INVALID_MESSAGE)
                 }
             } else if (convState == Constants.ConversationState.ADD_ROUTE_STEP_SET_TIME) {
                 if (message.hasText()) {
@@ -128,6 +144,8 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                     currentUsersRoute[message.chatId] = route
 
                     showSetName(chatId)
+                } else {
+                    sendMessage(chatId, TEXT_INVALID_MESSAGE)
                 }
             } else if (convState == Constants.ConversationState.ADD_ROUTE_STEP_SET_NAME) {
                 if (message.hasText()) {
@@ -139,7 +157,7 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                     routeRepository.create(currentUsersRoute[message.chatId]!!)
                     currentUsersRoute.remove(message.chatId)
 
-                    showSampleMessage(chatId)
+                    showSampleMessage(chatId, message.text)
                 }
             } else if (convState == Constants.ConversationState.ADD_ROUTE_STEP_FINAL) {
                 if (message.hasText()) {
@@ -162,12 +180,28 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                     showMoneyRequestMessage(chatId, message.text)
                 }
             } else if (convState == Constants.ConversationState.SHOW_MONEY_REQUEST) {
-
+                if (message.hasSuccessfulPayment()) {
+                    System.out.println("> success " + message.getSuccessfulPayment().getOrderInfo());
+                    //TODO add one month to user date
+                    showSuccessfullPaymentResponse(chatId);
+                } else {
+                    showFailedResponse(chatId);
+                }
             } else {
                 showMainMenu(chatId)
             }
 
         }
+    }
+
+    private fun showSuccessfullPaymentResponse(chatId: Long?) {
+        sendMessageWithMarkUp(chatId!!, "پرداخت با موفقیت انجام شد.", returnMenu)
+        conversations[chatId] = Constants.ConversationState.START
+    }
+
+    private fun showFailedResponse(chatId: Long?) {
+        sendMessageWithMarkUp(chatId!!, "پرداخت انجام نشد، لطفا مجددا تست نمایید.", returnMenu)
+        conversations[chatId] = Constants.ConversationState.START
     }
 
     private fun showMoneyRequestMessage(chatId: Long?, text: String) {
@@ -190,8 +224,8 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
         conversations[chatId] = Constants.ConversationState.SHOWED_ALL_ROUTES
     }
 
-    private fun showSampleMessage(chatId: Long?) {
-        sendMessageWithMarkUp(chatId!!, Constants.TEXT_ADD_ROUT_STEP5, Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD, Constants.BUTTON_RETURN_TO_MAIN_MENU))
+    private fun showSampleMessage(chatId: Long?, routeName: String) {
+        sendMessageWithMarkUp(chatId!!, Constants.TEXT_ADD_ROUT_STEP5.replace("{1}", routeName), Arrays.asList(Constants.BUTTON_ADD_ROUT_ADD, Constants.BUTTON_RETURN_TO_MAIN_MENU))
         conversations[chatId] = Constants.ConversationState.ADD_ROUTE_STEP_FINAL
     }
 
@@ -238,7 +272,7 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
     }
 
     private fun showMainMenu(chatId: Long?) {
-        sendMessageWithMarkUp(chatId!!, Constants.TEXT_START, mainMenu)
+        sendMessageWithMarkUp(chatId!!, Constants.TEXT_MAIN_MENU, mainMenu)
         conversations[chatId] = Constants.ConversationState.START
     }
 

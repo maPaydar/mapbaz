@@ -16,8 +16,9 @@ public class Constants {
             "من بازوی مپ\u200Cباز شما هستم و به شما کمک میکنم بهترین و کوتاه\u200Cترین مسیر با کمترین تلاش پیدا کنید. \n" +
             "برای شروع کافی است که مسیرهای پرتکراری که روزانه طی می کنید در مپ\u200Cباز تعریف کنید \n";
 
-    public static final String TEXT_ADD_ROUTE = "";
-
+    public static final String TEXT_MAIN_MENU =
+            "من بازوی مپ\u200Cباز شما هستم و به شما کمک میکنم بهترین و کوتاه\u200Cترین مسیر با کمترین تلاش پیدا کنید. \n" +
+            "برای شروع کافی است که مسیرهای پرتکراری که روزانه طی می کنید در مپ\u200Cباز تعریف کنید \n";
 
 
     public static final String TEXT_HASNOT_ROUTE_ = "برای استفاده از امکانات من لازم است که حتما مسیری را تعریف کنید.\n" +
@@ -27,7 +28,8 @@ public class Constants {
             "برای افزودن یک مسیر جدید از دکمه اضافه کردن مسیر جدید استفاده کنید.\n" +
             "همچنین می تونید با انتخاب هر کدوم از مسیرهای قبلی از لیست زیر اونها رو ویرایش کنید.\n";
 
-
+    public static final String TEXT_SHOW_LIVE_TERAFFIC_WITH_NONE_ROUTE = "شما هیچ مسیری تعریف نکرده اید"+
+            "برای افزودن یک مسیر جدید از دکمه اضافه کردن مسیر جدید استفاده کنید.\n";
     public static final String TEXT_ADD_ROUT_STEP1 = "مبدا مسیرت را برام بفرست.\n" +
             "\tبرای فرستادن مبدا دکمه + را بزنید و موقعیت مدنظرت را برام بفرست.\n";
     public static final String TEXT_ADD_ROUT_STEP2 = "معمولا کی از اینجا حرکت میکنی؟ \n" +
@@ -35,7 +37,7 @@ public class Constants {
     public static final String TEXT_ADD_ROUT_STEP3 = "مقصد مسیرت برام بفرست.\n";
     public static final String TEXT_ADD_ROUT_STEP4 = "اسم مسیرت را چی بزارم؟ \n" +
             "مثلا میتونی «خونه به شرکت» بزاری.\n";
-    public static final String TEXT_ADD_ROUT_STEP5 = "من چند دقیقه قبل از حرکت از (اسم مسیر) بهت پیام میدم تا کمکت کنم که کوتاه\u200Cترین مسیرها را برات پیدا کنم.\n" +
+    public static final String TEXT_ADD_ROUT_STEP5 = "من چند دقیقه قبل از حرکت از {1} بهت پیام میدم تا کمکت کنم که کوتاه\u200Cترین مسیرها را برات پیدا کنم.\n" +
             "نمونه پیامی که برات ارسال میکنم مثل عکس بالاست :)\n";
 
     public static final String TEXT_ADD_SCHAULE_TIME = "\n" +
@@ -50,6 +52,7 @@ public class Constants {
     public static final String TEXT_FOUND_ROUTE = "احتمالا مسیر {1} را در {2} میتونی بری." +
             "\n" +
             "برای مشاهده‌ی مسیر‌ها میتونی از لینک‌های زیر استفاده کنی.";
+    public static final String TEXT_INVALID_MESSAGE = "لطفا مقدار معتبر وارد کنید";
 
     // BUTTONS
     public static final String BUTTON_MAIN_ADD_ROUTE = "اضافه و ویرایش مسیرها";
@@ -59,6 +62,7 @@ public class Constants {
     public static final String BUTTON_RETURN_TO_MAIN_MENU = "بازگشت به منوی اصلی";
     public static final String BUTTON_ADD_ROUT_ADD = "اضافه کردن مسیر جدید";
     public static final String BUTTIN_BUY_GOLDEN_PANEL = "خرید اکانت طلایی";
+    public static final String BUTTON_CANCEL = "انصراف";
 
     //steps
 
