@@ -24,7 +24,7 @@ object HibernateUtil {
         try {
             val settings = Properties()
             settings.put(Environment.DRIVER, "org.postgresql.Driver")
-            settings.put(Environment.URL, "jdbc:postgresql://localhost/mapbaz")
+            settings.put(Environment.URL, "jdbc:postgresql://192.168.3.95/mapbaz")
             settings.put(Environment.USER, "amin")
             settings.put(Environment.PASS, "123456789")
             settings.put(Environment.DIALECT, "org.hibernate.dialect.PostgreSQLDialect")

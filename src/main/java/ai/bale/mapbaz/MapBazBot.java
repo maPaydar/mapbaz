@@ -21,6 +21,8 @@ public class MapBazBot extends TelegramLongPollingBot {
     List<String> mainMenu = Arrays.asList(Constants.BUTTON_MAIN_ADD_ROUTE,Constants.BUTTON_MAIN_ADD_SCHAULE_TIME,
             Constants.BUTTON_MAIN_SHOW_LIVE_TERRAFIC,BUTTON_MAIN_GOLD_PANEL);
 
+    List<String> returnMenu = Arrays.asList(Constants.BUTTON_RETURN_TO_MAIN_MENU);
+
     HashMap<Long, Constants.ConversationState> conversations = new HashMap();
 
 
@@ -111,12 +113,28 @@ public class MapBazBot extends TelegramLongPollingBot {
                     showMoneyRequestMessage(chatId, message.getText());
                 }
             } else if(convState.equals(Constants.ConversationState.SHOW_MONEY_REQUEST)) {
-
+                    if (message.hasSuccessfulPayment()) {
+                        System.out.println("> success " + message.getSuccessfulPayment().getOrderInfo());
+                        //TODO add one month to user date
+                        showSuccessfullPaymentResponse(chatId);
+                    } else {
+                        showFailedResponse(chatId);
+                    }
             } else {
                 showMainMenu(chatId);
             }
 
         }
+    }
+
+    private void showSuccessfullPaymentResponse(Long chatId) {
+        sendMessageWithMarkUp(chatId, "پرداخت با موفقیت انجام شد.", returnMenu);
+        conversations.put(chatId, Constants.ConversationState.START);
+    }
+
+    private void showFailedResponse(Long chatId) {
+        sendMessageWithMarkUp(chatId, "پرداخت انجام نشد، لطفا مجددا تست نمایید.",returnMenu);
+        conversations.put(chatId, Constants.ConversationState.START);
     }
 
     private void showMoneyRequestMessage(Long chatId, String text) {
@@ -228,7 +246,7 @@ public class MapBazBot extends TelegramLongPollingBot {
         sendInvoice.setTitle(text);
 
         LabeledPrice labeledPrice = new LabeledPrice();
-        labeledPrice.setAmount(1);
+        labeledPrice.setAmount(1000);
         labeledPrice.setLabel("خرید اکانت طلایی");
 
         List<LabeledPrice> labeledPriceList = new ArrayList<>();
