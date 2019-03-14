@@ -81,6 +81,10 @@ class MapBazBot(options: DefaultBotOptions) : TelegramLongPollingBot(options) {
                 }
                 sendMessageWithMarkUp(chatId!!, Constants.TEXT_START, mainMenu)
                 conversations[chatId] = Constants.ConversationState.START
+            }
+
+            if(message.hasText() && message.text == Constants.START) {
+                 showMainMenu(chatId)
             } else if (convState == Constants.ConversationState.START) {
                 // check command that enetred
                 if (message.hasText()) {
