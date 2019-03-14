@@ -7,7 +7,7 @@ import javax.persistence.*
 class User : java.io.Serializable {
 
     @Id
-    var user_id: Int? = 0
+    var user_id: Long? = 0
     var paymentDate: Long = 0
     var name: String = ""
 //    @OneToMany(mappedBy = "user")
@@ -16,11 +16,11 @@ class User : java.io.Serializable {
     constructor() {
     }
 
-    constructor(id: Int) {
+    constructor(id: Long) {
         this.user_id = id
     }
 
-    constructor(id: Int?, paymentDate: Long, name: String) {
+    constructor(id: Long, paymentDate: Long, name: String) {
         this.user_id = id
         this.paymentDate = paymentDate
         this.name = name

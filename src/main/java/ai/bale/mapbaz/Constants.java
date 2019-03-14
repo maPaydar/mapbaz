@@ -47,7 +47,9 @@ public class Constants {
 
     public static final String TEXT_GOLD_PANEL = "برای خرید اکانت طلایی به مدت یک ماه کافی است که مبلغ ۱۰۰۰ تومان رو پرداخت کنی که بتونی بیشتر از یک مسیر رو در بات ثبت کنی";
 
-    public static final String TEXT_FOUND_ROUTE = "احتمالا توی {1} به {2} برسی.";
+    public static final String TEXT_FOUND_ROUTE = "احتمالا مسیر {1} را در {2} میتونی بری." +
+            "\n" +
+            "برای مشاهده‌ی مسیر‌ها میتونی از لینک‌های زیر استفاده کنی.";
 
     // BUTTONS
     public static final String BUTTON_MAIN_ADD_ROUTE = "اضافه و ویرایش مسیرها";

@@ -11,7 +11,7 @@ class NeshanHandler {
     private val objectMapper = ObjectMapper()
     private var httpUtil = HttpUtil()
 
-    fun getRoutes(origin: Location, destination: Location, avoidTrafficZone: Boolean, avoidOddEvenZone: Boolean) : Routes {
+    fun getRoutes(origin: String, destination: String, avoidTrafficZone: Boolean, avoidOddEvenZone: Boolean) : Routes {
         val response = httpUtil.get(Constants.NESHAN_URL,
                 listOf("origin=$origin", "destination=$destination", "avoidTrafficZone=$avoidTrafficZone", "avoidOddEvenZone=$avoidOddEvenZone"),
                 mapOf(Pair("Api-Key", Constants.NESHAN_API_KEY)))

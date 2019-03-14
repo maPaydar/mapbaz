@@ -8,6 +8,7 @@ class Step {
     var polyline: OverviewPolyline = OverviewPolyline()
     var maneuver: String = ""
     var start_location: Array<Int> = arrayOf()
+    var rotaryName: String = ""
 
     constructor() {
     }
